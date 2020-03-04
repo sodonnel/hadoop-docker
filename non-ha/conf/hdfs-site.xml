@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<configuration>
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>/mnt/data/nn</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.checkpoint.dir</name>
+    <value>/mnt/data/snn</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.acls.enabled</name>
+    <value>true</value>
+  </property>
+  
+  <property>
+    <name>datanode.data.dir</name>
+    <value>/mnt/data/dn</value>
+  </property>
+
+  <property>
+    <name>fs.trash.interval</name>
+    <value>10</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.hosts.provider.classname</name>
+    <value>org.apache.hadoop.hdfs.server.blockmanagement.CombinedHostFileManager</value>
+  </property>
+
+  <property>
+    <name>dfs.hosts</name>
+    <value>/tmp/dfshosts</value>
+  </property>
+  
+</configuration>

@@ -1,0 +1,7 @@
+<?xml version="1.0"?><!-- core-site.xml -->
+<configuration>
+  <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://nameservice1</value>
+  </property>
+</configuration>
