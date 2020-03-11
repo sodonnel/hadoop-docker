@@ -1,4 +1,4 @@
-FROM centos
+FROM centos:centos7
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 RUN yum install -y sudo python2-pip wget nmap-ncat jq java-11-openjdk
 ENV JAVA_HOME=/usr/lib/jvm/jre/
