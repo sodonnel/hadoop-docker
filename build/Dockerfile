@@ -19,7 +19,9 @@ RUN yum install -y sudo  \
     openssl \
     openssl-devel \
     zlib-devel \
-    gcc-c++
+    gcc-c++ \
+    cyrus-sasl \
+    cyrus-sasl-devel
 
 # CMAKE
 RUN wget https://cmake.org/files/v3.10/cmake-3.10.0-Linux-x86_64.tar.gz \
