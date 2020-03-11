@@ -7,6 +7,7 @@ x-common-config:
     -  ${HADOOP_BUILD_PATH}:/hadoop
     -  /mnt/data
   build: ../  
+  image: hadoop-docker
 
 services:
   nn:
