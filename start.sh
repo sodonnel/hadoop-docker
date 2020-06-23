@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
+# Setup the config files from the environment
+/opt/env2conf.rb
+
+if [ ! -f /etc/hadoop/conf/log4j.properties ]; then
+  cp /hadoop/etc/hadoop/log4j.properties /etc/hadoop/conf/log4j.properties
+fi
+
 #
 # You can wait for an other TCP port with these settings.
 #

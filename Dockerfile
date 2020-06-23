@@ -1,6 +1,6 @@
 FROM centos:centos7
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-RUN yum install -y sudo python2-pip wget nmap-ncat jq java-11-openjdk
+RUN yum install -y sudo python2-pip wget nmap-ncat jq java-11-openjdk ruby
 ENV JAVA_HOME=/usr/lib/jvm/jre/
 ENV PATH $PATH:/hadoop/bin
 
@@ -12,6 +12,9 @@ RUN mkdir -p /mnt/data && chmod 1777 /mnt/data && mkdir -p /etc/hadoop/conf && m
 
 ENV HADOOP_LOG_DIR=/var/log/hadoop
 ENV HADOOP_CONF_DIR=/etc/hadoop/conf
+
+ADD env2conf.rb /opt/env2conf.rb
+RUN chmod 755 /opt/env2conf.rb
 
 ADD start.sh /opt/start.sh
 RUN chmod 755 /opt/start.sh
