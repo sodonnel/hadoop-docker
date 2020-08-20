@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
+RUN_AS=root
+
+if [ -n "$RUN_AS_USER" ]; then
+  chown $RUN_AS_USER /mnt/data && chmod 755 /mnt/data
+  chown $RUN_AS_USER /var/log/hadoop && chmod 755 /var/log/hadoop
+  RUN_AS=$RUN_AS_USER
+fi
+
 # Setup the config files from the environment
 /opt/env2conf.rb
 
@@ -43,26 +51,26 @@ fi
 
 if [ -n "$ENSURE_NAMENODE_DIR" ]; then
   if [ ! -d "$ENSURE_NAMENODE_DIR" ]; then
-    /hadoop/bin/hdfs namenode -format -force
+    gosu $RUN_AS /hadoop/bin/hdfs namenode -format -force
   fi
 fi
 
 if [ -n "$ENSURE_SECONDARY_NAMENODE_DIR" ]; then
   if [ ! -d "$ENSURE_SECONDARY_NAMENODE_DIR" ]; then
-    /hadoop/bin/hdfs secondarynamenode -format -force
+    gosu $RUN_AS /hadoop/bin/hdfs secondarynamenode -format -force
   fi
 fi
 
 if [ -n "$BOOTSTRAP_STANDBY_DIR" ]; then
   if [ ! -d "$BOOTSTRAP_STANDBY_DIR" ]; then
-    /hadoop/bin/hdfs namenode -bootstrapStandby
+    gosu $RUN_AS /hadoop/bin/hdfs namenode -bootstrapStandby
   fi
 fi
 
 # With a HA build that does not use ZK or ZKFC, use this to set a given NN active
 # eg, MAKE_NN_ACTIVE=nn1
 if [ ! -z "$MAKE_NN_ACTIVE" ]; then
-  /hadoop/bin/hdfs haadmin -transitionToActive --forceactive "$MAKE_NN_ACTIVE"
+  gosu $RUN_AS /hadoop/bin/hdfs haadmin -transitionToActive --forceactive "$MAKE_NN_ACTIVE"
 fi
 
 # To ensure ZKFC is formatted only once pass ENSURE_ZKFC_FORMATTED=/path/to/file
@@ -70,13 +78,13 @@ fi
 # been formatted. This avoid formatting again on restart.
 if [ -n "$ENSURE_ZKFC_FORMATTED" ]; then
   if [ ! -f "$ENSURE_ZKFC_FORMATTED" ]; then
-    /hadoop/bin/hdfs zkfc -formatZK && touch $ENSURE_ZKFC_FORMATTED
+    gosu $RUN_AS /hadoop/bin/hdfs zkfc -formatZK && touch $ENSURE_ZKFC_FORMATTED
   fi
 fi
 
 # To start ZKFC pass ENSURE_ZKFC=1 in the compose environment
 if [ -n "$ENSURE_ZKFC" ]; then
-  /hadoop/bin/hdfs --daemon start zkfc
+  gosu $RUN_AS /hadoop/bin/hdfs --daemon start zkfc
 fi
 
-"$@"
+gosu $RUN_AS "$@"
