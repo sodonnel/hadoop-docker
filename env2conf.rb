@@ -15,6 +15,8 @@
 #ENV["ENV2CONF_core-site.xml"] = "./test_conf"
 #ENV["hdfs-site.xml_foobar"] = "foobarval"
 #ENV["hdfs-site.xml_bar"] = "barval"
+#ENV["hdfs-site.xml_sub"] = "fdf%%hdfs-site.xml_bar%%_therest"
+#ENV["hdfs-site.xml_sub2"] = "fdf%%hdfs-site.xml_barnothere%%_therest"
 
 def write_vars(prefix, dest)
   unless File.directory?(dest)
@@ -28,10 +30,31 @@ def write_vars(prefix, dest)
     unless k =~ /#{prefix}_(.+)/
       next
     end
-    write_conf_var(fh, $1, ENV[k])
+    val = ENV[k]
+    val = substitute_val(val)
+    write_conf_var(fh, $1, val)
   end
   fh.puts "</configuration>"
   fh.close
+end
+
+# This routine will search the value passed in for a pattern like  %%CHARACTERS%%
+# and if it finds a pattern like this, it will assume the value inside
+# the double % symbols is another env variable. If so, it will replace
+# %%CHARACTERS%% with the other environment variable. If the other env
+# variable is not present, it will be replaced by empty string.
+#
+# Note only one replacement is attempted and the other env variable will
+# not have any values substituted if there are any.
+def substitute_val(val)
+  if val =~ /(%%[^%]+%%)/
+    # Replace the value like %%OTHER_ENV_VAR%% with the value of the
+    # other env var, or nothing
+    captured = $1
+    replacement = ENV[$1.gsub("%%", "")]
+    return val.gsub(/#{captured}/, replacement.nil? ? "" : replacement)
+  end
+  return val
 end
 
 def write_conf_var(fh, name, val)
