@@ -8,7 +8,13 @@
 #
 # By default a native build is created. To avoid that pass no_native to the script, eg
 #
-#    ./build.sh no_native
+#    ./build.sh --no_native
+#
+# The default docker image is hdfs-build:3.7.1, corresponding to the docker image 
+# containing protobuf 3.7.1. It use a different protobuf version (and assuming the image
+# exists) run the script like:
+#
+#    ./build.sh --proto_version=2.5.0
 #
 # TODO:
 #   Allow a switch to enable or disable the local mvn repo, ie allow it to be created
@@ -29,10 +35,26 @@ if [[ "$MVN_REPO" != /* ]]; then
 fi
 
 BUILD_OPTION="-Pdist,native"
-if [[ "$*" == *no_native* ]]; then
-    echo "Creating a non native build" 
-    BUILD_OPTION="-Pdist"
-fi
+PROTO_VERSION="3.7.1"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --proto_version=*)
+      PROTO_VERSION="${1#*=}"
+      echo "Using protobuf version $PROTO_VERSION"
+      ;;
+    --no_native)
+      echo "Creating a non native build"
+      BUILD_OPTION="-Pdist"
+      ;;
+    *)
+      printf "***************************\n"
+      printf "* Error: Invalid argument.*\n"
+      printf "***************************\n"
+      exit 1
+  esac
+  shift
+done
 
 if [[ ! -d $REPO_LOCATION ]]; then
     echo "Hadoop Repo is not present at $REPO_LOCATION"
@@ -44,4 +66,4 @@ if [[ ! -d $MVN_REPO ]]; then
   mkdir -p $MVN_REPO
 fi
 
-docker run -it -v ${REPO_LOCATION}:/hadoop -v ${MVN_REPO}:/mvn-repo -w /hadoop hdfs-build-test:1.0 mvn -Dmaven.repo.local=/mvn-repo/repository clean package ${BUILD_OPTION} -DskipTests -Dmaven.javadoc.skip=true
+docker run -it -v ${REPO_LOCATION}:/hadoop -v ${MVN_REPO}:/mvn-repo -w /hadoop hdfs-build:$PROTO_VERSION mvn -Dmaven.repo.local=/mvn-repo/repository clean package ${BUILD_OPTION} -DskipTests -Dmaven.javadoc.skip=true
