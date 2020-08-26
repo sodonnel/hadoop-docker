@@ -1,5 +1,7 @@
 FROM centos:centos7
 
+ARG PROTO_VERSION=3.7.1
+
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
 RUN yum install -y sudo  \
@@ -35,19 +37,21 @@ RUN wget http://mirror.ox.ac.uk/sites/rsync.apache.org/maven/maven-3/3.6.3/binar
     && rm -rf apache-maven-3.6.3-bin.tar.gz
 ENV PATH="/apache-maven-3.6.3/bin:${PATH}"
 
-RUN mkdir -p /opt/protobuf-src \
-    && curl -L -s -S \
-      https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/protobuf-java-3.7.1.tar.gz \
-      -o /opt/protobuf.tar.gz \
+# Required to build Hadoop on branch 3.3 and later
+RUN location="https://github.com/protocolbuffers/protobuf/releases/download/v${PROTO_VERSION}/protobuf-java-${PROTO_VERSION}.tar.gz" \
+    && if [ $PROTO_VERSION == "2.5.0" ]; then location="https://github.com/google/protobuf/releases/download/v2.5.0/protobuf-2.5.0.tar.gz"; fi \
+    && mkdir -p /opt/protobuf-src \
+    && curl -L -s -S $location -o /opt/protobuf.tar.gz \
     && tar xzf /opt/protobuf.tar.gz --strip-components 1 -C /opt/protobuf-src \
     && cd /opt/protobuf-src \
     && ./configure --prefix=/opt/protobuf \
     && make install \
     && cd /root \
     && rm -rf /opt/protobuf-src
+
 ENV PROTOBUF_HOME /opt/protobuf
-ENV PATH "${PATH}:/opt/protobuf/bin"
-ENV LD_LIBRARY_PATH="/opt/protobuf/lib:${LD_LIBRARY_PATH}"
+ENV PATH "${PATH}:${PROTOBUF_HOME}/bin"
+ENV LD_LIBRARY_PATH="{$PROTOBUF_HOME}:${LD_LIBRARY_PATH}"
 
 ENV PATH="/usr/lib/jvm/java-1.8.0-openjdk/bin:${PATH}"
 ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk
