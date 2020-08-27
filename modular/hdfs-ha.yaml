@@ -1,0 +1,67 @@
+version: "3.4"
+
+x-common-config:
+  &common-config
+  volumes:
+    -  ${HADOOP_BUILD_PATH}:/hadoop
+    -  /mnt/data
+  build: ../  
+  image: hadoop-docker
+  env_file:
+    - ./container-env/hdfs-common.env
+    - ./container-env/hdfs-ha.env
+
+services:   
+  nn1:
+    <<: *common-config
+    environment:
+      ENSURE_ZKFC_FORMATTED: /mnt/data/nn/zk_formatted
+      ENSURE_ZKFC: 1
+    ports:
+      - "9870:9870"
+    depends_on:
+      - jn1
+      - jn2
+      - jn3
+      - zk1
+    command: hdfs namenode
+
+  nn2:
+    <<: *common-config
+    environment:
+      WAITFOR: nn1:8020
+      BOOTSTRAP_STANDBY_DIR: /mnt/data/nn/current
+      ENSURE_ZKFC: 1
+    ports:
+      - "9871:9870"
+    depends_on:
+      - nn1
+      - jn1
+      - jn2
+      - jn3
+      - zk1
+    command: hdfs namenode
+
+# Cannot just use one JN service and scale it, as the hostnames it creates are
+# jn_1, jn_2, jn_3 and these are invalid hostnames. The NN refuses to connect to
+# them due to the illegal underscore character in the filename.
+  jn1:
+    <<: *common-config
+    command: hdfs journalnode
+
+  jn2:
+    <<: *common-config
+    command: hdfs journalnode
+
+  jn3:
+    <<: *common-config
+    command: hdfs journalnode
+
+  zk1:
+    image: zookeeper:3.4
+    volumes:
+      - /data
+      - /datalog
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2181

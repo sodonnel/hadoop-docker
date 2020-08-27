@@ -1,0 +1,21 @@
+version: "3.4"
+
+x-common-config:
+  &common-config
+  volumes:
+    -  ${HADOOP_BUILD_PATH}:/hadoop
+    -  /mnt/data
+  build: ../  
+  image: hadoop-docker
+  env_file:
+    - ./container-env/hdfs-common.env
+    - ./container-env/yarn.env
+
+services:
+  rm1:
+    <<: *common-config
+    command: yarn resourcemanager
+
+  nm:
+    <<: *common-config
+    command: yarn nodemanager

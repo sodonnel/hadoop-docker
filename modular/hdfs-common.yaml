@@ -1,0 +1,24 @@
+version: "3.4"
+
+x-common-config:
+  &common-config
+  volumes:
+    -  ${HADOOP_BUILD_PATH}:/hadoop
+    -  /mnt/data
+  build: ../  
+  image: hadoop-docker
+  env_file:
+    - ./container-env/hdfs-common.env
+
+services:
+  nn1:
+    <<: *common-config
+    environment:
+      ENSURE_NAMENODE_DIR: /mnt/data/nn/current
+    ports:
+      - "9870:9870"
+    command: hdfs namenode
+
+  dn:
+    <<: *common-config
+    command: hdfs datanode

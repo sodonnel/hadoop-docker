@@ -1,0 +1,21 @@
+version: "3.4"
+
+x-common-config:
+  &common-config
+  volumes:
+    -  ${HADOOP_BUILD_PATH}:/hadoop
+    -  /mnt/data
+  build: ../  
+  image: hadoop-docker
+  env_file:
+    - ./container-env/hdfs-common.env
+
+services:
+  snn:
+    <<: *common-config
+    environment:
+      WAITFOR: nn1:8020
+      ENSURE_SECONDARY_NAMENODEDIR: /mnt/data/snn/current  
+    ports:
+      - "9871:9870"
+    command: hdfs secondarynamenode
