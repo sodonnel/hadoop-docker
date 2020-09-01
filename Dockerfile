@@ -1,6 +1,11 @@
 FROM centos:centos7
+
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-RUN yum install -y sudo python2-pip wget nmap-ncat jq java-11-openjdk java-11-openjdk-devel ruby krb5-libs krb5-workstation 
+RUN yum install -y sudo python2-pip wget nmap-ncat jq java-11-openjdk java-11-openjdk-devel ruby krb5-libs krb5-workstation
+
+# Dumb-init
+RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_x86_64 && \
+chmod 755 /usr/bin/dumb-init
 
 # Setup gosu for easier command execution
 RUN gpg --keyserver pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
@@ -31,4 +36,5 @@ RUN chmod 755 /opt/env2conf.rb && chmod 755 /opt/create-keytabs.rb
 
 ADD start.sh /opt/start.sh
 RUN chmod 755 /opt/start.sh
-ENTRYPOINT ["/opt/start.sh"]
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "/opt/start.sh"]

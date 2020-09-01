@@ -98,4 +98,4 @@ if [ -n "$ENSURE_ZKFC" ]; then
   gosu $RUN_AS /hadoop/bin/hdfs --daemon start zkfc
 fi
 
-gosu $RUN_AS "$@"
+exec gosu $RUN_AS "$@"
