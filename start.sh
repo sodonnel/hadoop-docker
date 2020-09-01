@@ -1,6 +1,26 @@
 #!/usr/bin/env bash
 set -e
 
+waitFor() {
+  local host="$1"
+  local port="$2"
+  echo "Waiting for the service ${host}:$port"
+  for i in `seq ${WAITFOR_TIMEOUT:-300} -1 0` ; do
+    set +e
+    nc -z "$host" "$port" > /dev/null 2>&1
+    result=$?
+    set -e
+    if [ $result -eq 0 ] ; then
+      break
+    fi
+    sleep 1
+  done
+  if [ "$i" -eq 0 ]; then
+     echo "Waiting for service ${host}:$port is timed out." >&2
+     exit 1
+  fi
+}
+
 RUN_AS=root
 
 if [ -n "$RUN_AS_USER" ]; then
@@ -14,6 +34,11 @@ fi
 
 if [ ! -f /etc/hadoop/conf/log4j.properties ]; then
   cp /hadoop/etc/hadoop/log4j.properties /etc/hadoop/conf/log4j.properties
+fi
+
+if [ -n "$KERBEROS_ENABLED" ]; then
+  waitFor $KDC_HOST $KDC_PORT
+  /opt/create-keytabs.rb "$KERBEROS_PRINCIPALS"
 fi
 
 #
@@ -30,23 +55,9 @@ fi
 # Note with this implementation, a given service can only wait
 # on one other port.
 if [ ! -z "$WAITFOR" ]; then
-  echo "Waiting for the service $WAITFOR"
   WAITFOR_HOST=$(printf "%s\n" "$WAITFOR"| cut -d : -f 1)
   WAITFOR_PORT=$(printf "%s\n" "$WAITFOR"| cut -d : -f 2)
-  for i in `seq ${WAITFOR_TIMEOUT:-300} -1 0` ; do
-    set +e
-    nc -z "$WAITFOR_HOST" "$WAITFOR_PORT" > /dev/null 2>&1
-    result=$?
-    set -e
-    if [ $result -eq 0 ] ; then
-      break
-    fi
-    sleep 1
-  done
-  if [ "$i" -eq 0 ]; then
-     echo "Waiting for service $WAITFOR is timed out." >&2
-     exit 1
-  fi
+  waitFor $WAITFOR_HOST $WAITFOR_PORT
 fi
 
 if [ -n "$ENSURE_NAMENODE_DIR" ]; then

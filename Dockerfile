@@ -1,6 +1,6 @@
 FROM centos:centos7
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-RUN yum install -y sudo python2-pip wget nmap-ncat jq java-11-openjdk java-11-openjdk-devel ruby
+RUN yum install -y sudo python2-pip wget nmap-ncat jq java-11-openjdk java-11-openjdk-devel ruby krb5-libs krb5-workstation 
 
 # Setup gosu for easier command execution
 RUN gpg --keyserver pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
@@ -25,7 +25,9 @@ ENV HADOOP_LOG_DIR=/var/log/hadoop
 ENV HADOOP_CONF_DIR=/etc/hadoop/conf
 
 ADD env2conf.rb /opt/env2conf.rb
-RUN chmod 755 /opt/env2conf.rb
+ADD create-keytabs.rb /opt/create-keytabs.rb
+ADD kdc/krb5.conf /etc/krb5.conf
+RUN chmod 755 /opt/env2conf.rb && chmod 755 /opt/create-keytabs.rb
 
 ADD start.sh /opt/start.sh
 RUN chmod 755 /opt/start.sh
