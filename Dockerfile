@@ -1,7 +1,7 @@
 FROM centos:centos7
 
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-RUN yum install -y sudo python2-pip wget nmap-ncat jq java-11-openjdk java-11-openjdk-devel ruby krb5-libs krb5-workstation
+RUN yum install -y sudo openssl python2-pip wget nmap-ncat jq java-11-openjdk java-11-openjdk-devel ruby krb5-libs krb5-workstation
 
 # Dumb-init
 RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_x86_64 && \
@@ -24,15 +24,19 @@ RUN groupadd --gid 1000 hdfs && groupadd --gid 1001 hadoop && groupadd --gid 100
 && useradd -u 1001 -g yarn -G hadoop yarn \
 && useradd systest && useradd systest2 && useradd systest3
 
-RUN mkdir -p /mnt/data && chmod 1777 /mnt/data && mkdir -p /etc/hadoop/conf && mkdir -p /var/log/hadoop && chmod 1777 /var/log/hadoop
+RUN mkdir -p /mnt/data && chmod 1777 /mnt/data \
+  && mkdir -p /etc/hadoop/conf \
+  && mkdir -p /var/log/hadoop && chmod 1777 /var/log/hadoop \
+  && mkdir -p /opt/security
 
 ENV HADOOP_LOG_DIR=/var/log/hadoop
 ENV HADOOP_CONF_DIR=/etc/hadoop/conf
 
 ADD env2conf.rb /opt/env2conf.rb
 ADD create-keytabs.rb /opt/create-keytabs.rb
-ADD kdc/krb5.conf /etc/krb5.conf
-RUN chmod 755 /opt/env2conf.rb && chmod 755 /opt/create-keytabs.rb
+ADD images/kdc/krb5.conf /etc/krb5.conf
+ADD generate-certs.sh /opt/generate-certs.sh
+RUN chmod 755 /opt/env2conf.rb && chmod 755 /opt/create-keytabs.rb && chmod 755 /opt/generate-certs.sh
 
 ADD start.sh /opt/start.sh
 RUN chmod 755 /opt/start.sh

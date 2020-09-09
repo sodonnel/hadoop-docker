@@ -41,6 +41,11 @@ if [ -n "$KERBEROS_ENABLED" ]; then
   /opt/create-keytabs.rb "$KERBEROS_PRINCIPALS"
 fi
 
+if [ -n "$TLS_ENABLED" ]; then
+  waitFor $CA_HOST $CA_PORT
+  /opt/generate-certs.sh $CA_HOST $CA_PORT
+fi
+
 #
 # You can wait for an other TCP port with these settings.
 #
