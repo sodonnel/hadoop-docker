@@ -32,13 +32,8 @@ RUN mkdir -p /mnt/data && chmod 1777 /mnt/data \
 ENV HADOOP_LOG_DIR=/var/log/hadoop
 ENV HADOOP_CONF_DIR=/etc/hadoop/conf
 
-ADD env2conf.rb /opt/env2conf.rb
-ADD create-keytabs.rb /opt/create-keytabs.rb
-ADD images/kdc/krb5.conf /etc/krb5.conf
-ADD generate-certs.sh /opt/generate-certs.sh
-RUN chmod 755 /opt/env2conf.rb && chmod 755 /opt/create-keytabs.rb && chmod 755 /opt/generate-certs.sh
-
-ADD start.sh /opt/start.sh
-RUN chmod 755 /opt/start.sh
+COPY ./include/* /opt/
+RUN chmod 755 /opt/* \
+  && rm -f /etc/krb5.conf && cp /opt/krb5.conf /etc/krb5.conf
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--", "/opt/start.sh"]

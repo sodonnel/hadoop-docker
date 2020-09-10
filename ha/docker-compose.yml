@@ -6,7 +6,7 @@ x-common-config:
     -  ./conf:/etc/hadoop/conf
     -  ${HADOOP_BUILD_PATH}:/hadoop
     -  /mnt/data
-  build: ../  
+  build: ../images/hadoop-runner
   image: hadoop-docker
 
 services:

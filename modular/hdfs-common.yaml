@@ -5,7 +5,7 @@ x-common-config:
   volumes:
     -  ${HADOOP_BUILD_PATH}:/hadoop
     -  /mnt/data
-  build: ../  
+  build: ../images/hadoop-runner
   image: hadoop-docker
   env_file:
     - ./container-env/hdfs-common.env
@@ -13,6 +13,7 @@ x-common-config:
 services:
   nn1:
     <<: *common-config
+    hostname: nn1
     environment:
       ENSURE_NAMENODE_DIR: /mnt/data/nn/current
     ports:
