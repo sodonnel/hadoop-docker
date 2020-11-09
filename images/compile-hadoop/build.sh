@@ -23,8 +23,8 @@
 
 set -e
 
-REPO_LOCATION=${HADOOP_REPO:-../../hadoop}
-MVN_REPO=${HADOOP_MVN_REPO:-../../docker-mvn/repo}
+REPO_LOCATION=${HADOOP_REPO:-../../../hadoop}
+MVN_REPO=${HADOOP_MVN_REPO:-../../../docker-mvn/repo}
 
 if [[ "$REPO_LOCATION" != /* ]]; then
     REPO_LOCATION=`pwd`/$REPO_LOCATION
