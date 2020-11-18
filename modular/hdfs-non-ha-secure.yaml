@@ -1,0 +1,26 @@
+version: "3.4"
+
+x-common-config:
+  &common-config
+  env_file:
+    - ./container-env/hdfs-non-ha-kerberos.env
+
+services:
+  nn1:
+   <<: *common-config
+
+  snn:
+    <<: *common-config
+
+  dn:
+    <<: *common-config
+
+  kdc:
+    hostname: kdc
+    build: ../images/kdc
+    image: kdc
+
+  ca:
+    hostname: ca
+    build: ../images/certificate_authority
+    image: catest
