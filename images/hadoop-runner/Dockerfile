@@ -1,20 +1,45 @@
-FROM centos:centos7
+FROM centos:7.9.2009
 
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-RUN yum install -y sudo openssl python2-pip wget nmap-ncat jq java-11-openjdk java-11-openjdk-devel ruby krb5-libs krb5-workstation
+RUN yum install -y sudo openssl python2-pip wget nmap-ncat jq java-11-openjdk java-11-openjdk-devel ruby krb5-libs krb5-workstation && yum clean all
 
 # Dumb-init
-RUN wget -O /usr/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_x86_64 && \
-chmod 755 /usr/bin/dumb-init
+RUN set -eux ; \
+    ARCH="$(arch)"; \
+    case "${ARCH}" in \
+        x86_64) \
+            url='https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64'; \
+            sha256='e874b55f3279ca41415d290c512a7ba9d08f98041b28ae7c2acb19a545f1c4df'; \
+            ;; \
+        aarch64) \
+            url='https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_aarch64'; \
+            sha256='b7d648f97154a99c539b63c55979cd29f005f88430fb383007fe3458340b795e'; \
+            ;; \
+        *) echo "Unsupported architecture: ${ARCH}"; exit 1 ;; \
+    esac; \
+    curl -L ${url} -o dumb-init ; \
+    echo "${sha256} *dumb-init" | sha256sum -c - ; \
+    chmod +x dumb-init ; \
+    mv dumb-init /usr/bin/dumb-init
 
-# Setup gosu for easier command execution
-RUN gpg --keyserver pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
-    && curl -o /usr/local/bin/gosu -SL "https://github.com/tianon/gosu/releases/download/1.2/gosu-amd64" \
-    && curl -o /usr/local/bin/gosu.asc -SL "https://github.com/tianon/gosu/releases/download/1.2/gosu-amd64.asc" \
-    && gpg --verify /usr/local/bin/gosu.asc \
-    && rm /usr/local/bin/gosu.asc \
-    && rm -r /root/.gnupg/ \
-    && chmod +x /usr/local/bin/gosu
+# Go Su
+RUN set -eux ; \
+    ARCH="$(arch)"; \
+    case "${ARCH}" in \
+        x86_64) \
+            url='https://github.com/tianon/gosu/releases/download/1.14/gosu-amd64'; \
+            sha256='bd8be776e97ec2b911190a82d9ab3fa6c013ae6d3121eea3d0bfd5c82a0eaf8c'; \
+            ;; \
+        aarch64) \
+            url='https://github.com/tianon/gosu/releases/download/1.14/gosu-arm64'; \
+            sha256='73244a858f5514a927a0f2510d533b4b57169b64d2aa3f9d98d92a7a7df80cea'; \
+            ;; \
+        *) echo "Unsupported architecture: ${ARCH}"; exit 1 ;; \
+    esac; \
+    curl -L ${url} -o gosu ; \
+    echo "${sha256} *gosu" | sha256sum -c - ; \
+    chmod +x gosu ; \
+    mv gosu /usr/local/bin/gosu
 
 ENV JAVA_HOME=/usr/lib/jvm/java
 ENV PATH $PATH:/hadoop/bin
